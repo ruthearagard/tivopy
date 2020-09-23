@@ -12,11 +12,10 @@
 # OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-import socket
-from typing import cast
 from zeroconf import ServiceBrowser, Zeroconf
 
 class TiVoDiscovery:
+    """Discovers TiVos on the local network using Zeroconf."""
     def __init__(self):
         self.addresses = []
 
@@ -26,11 +25,23 @@ class TiVoDiscovery:
                                       self)
     
     def remove_service(self, zeroconf, type, name):
+        """
+        Called by zeroconf.ServiceBrowser when a TiVo has been removed from
+        the network. We should probably care about this, but we don't
+        currently.
+        """
         pass
 
     def add_service(self, zeroconf, type, name):
+        """
+        Called by zeroconf.ServiceBrowser when a TiVo has been detected on the
+        network.
+        """
         info = zeroconf.get_service_info(type, name)
 
         for address in info.addresses:
-            result = (name.strip('._tivo-mindrpc._tcp.local.'), socket.inet_ntoa(address))
+            # The user should not care about the underlying service name.
+            result = (name.strip('._tivo-mindrpc._tcp.local.'),
+                      socket.inet_ntoa(address))
+
             self.addresses.append(result)
