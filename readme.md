@@ -1,5 +1,4 @@
 # TiVoPy -- TiVo Virtual Remote Control
----------------------------------------
 
 This program is open source but copyrighted under the ISC license; refer to the
 "license.txt" file for more information.
