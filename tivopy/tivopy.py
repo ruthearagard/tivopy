@@ -30,14 +30,17 @@ class TiVoPy(QObject):
         # The first thing we do is allow the user to select a TiVo to connect
         # to.
         self.select_tivo_widget = SelectTiVoWidget()
-
-        self.select_tivo_widget.setWindowTitle("Select TiVo")
-        self.select_tivo_widget.resize(512, 384)
-
         self.select_tivo_widget.show()
 
         self.select_tivo_widget.connect_to_tivo.connect(self.connect_to_tivo)
         Timer(5.0, self.discover_tivos).start()
+
+    @Slot(str)
+    def send_command(self, command):
+        """
+        Called when the user presses a button on the virtual remote control.
+        """
+        self.client.send_command(command)
 
     @Slot(str, str)
     def connect_to_tivo(self, name, ip_address):
@@ -45,6 +48,10 @@ class TiVoPy(QObject):
         self.client.channel_changed.connect(self.channel_changed)
 
         self.main_window = MainWindow()
+        self.main_window.setWindowTitle(f"TiVoPy - {name} ({ip_address})")
+
+        self.main_window.command_requested.connect(self.send_command)
+
         self.main_window.update_connected_to(name, ip_address)
 
         self.select_tivo_widget.close()

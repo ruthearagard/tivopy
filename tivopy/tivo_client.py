@@ -12,7 +12,7 @@
 # OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-from PySide2.QtCore import QObject, Signal
+from PySide2.QtCore import QByteArray, QObject, Signal
 from PySide2.QtNetwork import QTcpSocket
 
 class TiVoClient(QObject):
@@ -28,27 +28,9 @@ class TiVoClient(QObject):
 
         self.socket.readyRead.connect(self.handle_read)
 
-    def ircode(self, code):
-        pass
-
-    def keyboard(self, code):
-        pass
-
-    def setch(self, channel, sub_channel=0):
-        if sub_channel != 0:
-            self.socket.write("SETCH %d %d" % channel, sub_channel)
-        else:
-            self.socket.write("SETCH %d" % channel)
-
-    def forcech(self, channel, sub_channel=0):
-        if sub_channel != 0:
-            self.socket.write("FORCECH %d %d" % channel, sub_channel)
-        else:
-            self.socket.write("FORCECH %d" % channel)
-
-    def teleport(self, screen):
-        """Forcibly changes the DVR to a specific screen."""
-        pass
+    def send_command(self, command):
+        print(f'Sending {command}...')
+        self.socket.write(QByteArray(bytes(command + "\r", encoding='ascii')))
 
     def handle_read(self):
         """Handles data received by the socket."""
@@ -61,6 +43,8 @@ class TiVoClient(QObject):
 
         # Convert the data to a string.
         data = data.decode('utf-8')
+
+        print(f"Received {data}")
 
         # Parameterize the string.
         data = data.split(' ')

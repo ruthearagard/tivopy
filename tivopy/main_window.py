@@ -13,7 +13,7 @@
 # PERFORMANCE OF THIS SOFTWARE.
 
 import assets
-from PySide2.QtCore import Qt, Signal
+from PySide2.QtCore import Signal, Slot, QPoint, Qt
 from PySide2.QtGui import QMouseEvent, QPixmap
 from PySide2.QtWidgets import (QAction,
                                QLabel,
@@ -22,21 +22,67 @@ from PySide2.QtWidgets import (QAction,
                                QMenu,
                                QPushButton)
 
-class TiVoRemoteView(QLabel):
+class MainWindow(QLabel):
+    """Defines the view for the remote control."""
     command_requested = Signal(str)
 
-    def __init__(self, parent):
-        super(TiVoRemoteView, self).__init__(parent)
+    def __init__(self):
+        super(MainWindow, self).__init__()
+
+        # Construct a QPixmap from the TiVo remote control image.
+        self.remote_control_pixmap = QPixmap("tivo_remote.jpg")
+
+        # Scale the window to the width and height of the TiVo remote control
+        # image and disable resizing. We disable resizing because:
+        #
+        # 1) there's really no point to resizing it
+        # 2) none of the images I have are going to look good scaled up
+        # 3) it would only serve to complicate the clickable zone logic for no
+        #    good reason (see below).
+        self.setFixedSize(self.remote_control_pixmap.width(),
+                          self.remote_control_pixmap.height())
+
+        # Render the pixmap to the window.
+        self.setPixmap(self.remote_control_pixmap)
+
+        # Allow a context menu to be implemented.
+        self.setContextMenuPolicy(Qt.CustomContextMenu)
+
+        # Notify us when the user has right clicked on the window.
+        self.customContextMenuRequested.connect(self.on_context_menu)
+
+        # Define informational QActions to be displayed to the user on the
+        # context menu.
+        self.current_channel = QAction(self)
+        self.connected_to = QAction(self)
+
+        # Because they're informational, making them clickable would serve no
+        # purpose.
+        self.connected_to.setEnabled(False)
+        self.current_channel.setEnabled(False)
+
+        self.select_tivo = QAction("Connect to a different TiVo...", self)
+        self.input_text = QAction("Input text...", self)
+
+        # We care about ALL movements of the user, regardless of whether or not
+        # they're pressing buttons.
         self.setMouseTracking(True)
 
-        # Zone data. This is a list of dictionaries which specifies the
+        # Button widgets are not used to handle input from the user, instead an
+        # image of a TiVo remote control is displayed and the user merely has
+        # to click on the button they wish to press as they would press it on a
+        # real remote control. Therefore, the simplest solution is to intercept
+        # cursor movements and check to see whether the coordinates fall within
+        # the boundaries of a button.
+        #
+        # The boundary data for each button is a dictionary with values of the
         # following:
         #
-        # cmd: The command that will be sent when the zone is triggered.
-        # min_x: The minimum X position that the zone is in.
-        # max_x: The maximum X position that the zone is in.
-        # max_x: The maximum X position that the zone is in.
-        # max_y: The maximum Y position that the zone is in.
+        # cmd (str):   The command that will be sent when the zone is triggered
+        # min_x (int): The minimum X position that the zone is in.
+        # max_x (int): The maximum X position that the zone is in.
+        # min_y (int): The minimum Y position that the zone is in.
+        # max_y (int): The maximum Y position that the zone is in.
         self.clickable_zones = [{ "cmd"    : "IRCODE TIVO",
                                   "min_x"  : 193,
                                   "max_x"  : 234,
@@ -233,65 +279,69 @@ class TiVoRemoteView(QLabel):
                                   "min_y"  : 628,
                                   "max_y"  : 656 }]
 
-        # The current zone that the user is hovering over.
+        # The current zone that the cursor is hovering over.
         self.current_zone = { }
 
     def mouseMoveEvent(self, event):
+        """Called when the cursor moves over the remote control."""
+        # Every time a user makes a move, we have to check and see if the
+        # cursor is hovering over a position we care about.
         for zone in self.clickable_zones:
+            # Grab the X and Y positions of the cursor. We do this here so as
+            # to not repeatedly call it over and over again in the following
+            # code.
             x = event.x()
             y = event.y()
 
+            # Is the cursor within the ranges of a zone's bounding box?
             if (x >= zone["min_x"] and x <= zone["max_x"]) and \
                (y >= zone["min_y"] and y <= zone["max_y"]):
+                # Yes, save the current zone the user is hovering over. This
+                # will prevent us from having to iterate again if the user
+                # clicks on the zone.
                 self.current_zone = zone
-                self.setCursor(Qt.PointingHandCursor)
 
+                # Change the cursor to pointing hand to signify that this area
+                # is indeed clickable.
+                self.setCursor(Qt.PointingHandCursor)
                 break
 
+            # The cursor is not hovering over a zone, clear the current zone
+            # and return the cursor to normal.
             self.current_zone = { }
             self.unsetCursor()
 
     def mousePressEvent(self, event):
+        """Called when the mouse is left clicked on the remote control."""
+        # It is very possible that the user will just click regardless of
+        # whether or not they're hovering over a zone, so this check is
+        # necessary.
         if self.current_zone:
-            print(self.current_zone["cmd"])
+            # The user is pressing a button, dispatch the command string for
+            # it.
             self.command_requested.emit(self.current_zone["cmd"])
 
-class MainWindow(QMainWindow):
-    command_requested = Signal(str)
-
-    def __init__(self):
-        super(MainWindow, self).__init__()
-
-        self.remote_control_pixmap = QPixmap("tivo_remote.jpg")
-        self.resize(self.remote_control_pixmap.width(),
-                    self.remote_control_pixmap.height())
-
-        self.label = TiVoRemoteView(self)
-        self.label.setPixmap(self.remote_control_pixmap)
-
-        self.layout().setSizeConstraint(QLayout.SetFixedSize)
-        self.setCentralWidget(self.label)
-
-        self.connected_to = QAction(self)
-        self.connected_to.setEnabled(False)
-
-        self.current_channel = QAction(self)
-        self.current_channel.setEnabled(False)
-
-        self.select_tivo = QAction("Connect to a different TiVo...", self)
-        self.input_text = QAction("Input text...", self)
-
-    def update_channel(self, name, how):
-        self.current_channel.setText(f"Current channel: {name} ({how})")
-
-    def update_connected_to(self, name, ip):
-        self.connected_to.setText(f"Connected to {name} ({ip})")
-
-    def contextMenuEvent(self, event):
+    @Slot(QPoint)
+    def on_context_menu(self, point):
+        """Called when the mouse is right clicked on the remote control."""
         menu = QMenu(self)
         menu.addAction(self.connected_to)
         menu.addAction(self.current_channel)
         menu.addSeparator()
         menu.addAction(self.select_tivo)
         menu.addAction(self.input_text)
-        menu.exec_(event.globalPos())
+        menu.exec_(self.mapToGlobal(point))
+
+    def update_connected_to(self, name, ip):
+        """
+        Updates the information specifying to the user what TiVo they're
+        connected to and its IP.
+        """
+        self.connected_to.setText(f"Connected to {name} ({ip})")
+
+    def update_channel(self, name, how):
+        """
+        Updates the information specifying to the user what channel their TiVo
+        is currently tuned into.
+        """
+        self.current_channel.setText(f"Current channel: {name} ({how})")

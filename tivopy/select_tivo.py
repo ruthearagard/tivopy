@@ -51,7 +51,8 @@ class SelectTiVoWidget(QWidget):
         self.layout.addWidget(self.label)
         self.layout.addWidget(self.tivo_listings)
 
-        self.label.show()
+        self.setWindowTitle("Select TiVo")
+        self.resize(512, 384)
 
     def add_tivo(self, name, ip_address):
         item = QTreeWidgetItem()
