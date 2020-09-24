@@ -12,6 +12,7 @@
 # OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
+from socket import inet_ntoa
 from zeroconf import ServiceBrowser, Zeroconf
 
 class TiVoDiscovery:
@@ -42,6 +43,6 @@ class TiVoDiscovery:
         for address in info.addresses:
             # The user should not care about the underlying service name.
             result = (name.strip('._tivo-mindrpc._tcp.local.'),
-                      socket.inet_ntoa(address))
+                      inet_ntoa(address))
 
             self.addresses.append(result)

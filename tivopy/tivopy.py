@@ -21,11 +21,14 @@ from .tivo_discovery import TiVoDiscovery
 from .tivo_client import TiVoClient
 
 class TiVoPy(QObject):
+    """Main program controller."""
     def __init__(self):
         super(TiVoPy, self).__init__()
     
         self.tivo_discovery = TiVoDiscovery()
-    
+
+        # The first thing we do is allow the user to select a TiVo to connect
+        # to.
         self.select_tivo_widget = SelectTiVoWidget()
 
         self.select_tivo_widget.setWindowTitle("Select TiVo")
@@ -34,25 +37,23 @@ class TiVoPy(QObject):
         self.select_tivo_widget.show()
 
         self.select_tivo_widget.connect_to_tivo.connect(self.connect_to_tivo)
-
         Timer(5.0, self.discover_tivos).start()
 
-    @Slot(str)
-    def connect_to_tivo(self, ip_address):
+    @Slot(str, str)
+    def connect_to_tivo(self, name, ip_address):
         self.client = TiVoClient(ip_address)
         self.client.channel_changed.connect(self.channel_changed)
 
         self.main_window = MainWindow()
-
-        self.main_window.resize(800, 600)
-        self.main_window.setWindowTitle("TiVoPy")
+        self.main_window.update_connected_to(name, ip_address)
 
         self.select_tivo_widget.close()
         self.main_window.show()
 
     @Slot(tuple)
     def channel_changed(self, channel):
-        print("Channel changed: %s %s", channel[0], channel[1])
+        """Called when the channel has been changed by any action."""
+        self.main_window.update_channel(channel[0], channel[1])
 
     def discover_tivos(self):
         for name, ip_address in self.tivo_discovery.addresses:

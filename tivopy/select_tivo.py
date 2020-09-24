@@ -23,8 +23,10 @@ from PySide2.QtWidgets import (QVBoxLayout,
                               QWidget)
 
 class SelectTiVoWidget(QWidget):
+    """Displays the list of TiVos that were discovered on the network."""
+
     # Signals
-    connect_to_tivo = Signal(str)
+    connect_to_tivo = Signal(str, str)
 
     def __init__(self):
         super(SelectTiVoWidget, self).__init__()
@@ -32,10 +34,12 @@ class SelectTiVoWidget(QWidget):
         self.tivos_found = []
 
         self.label = QLabel(self)
+
         self.label.setText('Below is a listing of all TiVos discovered on your'
                            ' network, which will refresh every 5 seconds. If y'
                            'ou do not see your TiVo, '
-                           '<a href="#specify_ip">click here to specify an IP address.</a>')
+                           '<a href="#specify_ip">click here to specify an IP'
+                           ' address.</a>')
 
         self.label.linkActivated.connect(self.specify_ip_address)
 
@@ -58,7 +62,7 @@ class SelectTiVoWidget(QWidget):
         self.tivos_found.append(item)
 
     def tivo_selected(self, item, column):
-        self.connect_to_tivo.emit(item.text(1))
+        self.connect_to_tivo.emit(item.text(0), item.text(1))
 
     def specify_ip_address(self, link):
         text, ok = QInputDialog().getText(self,
