@@ -14,15 +14,15 @@
 
 from PySide2.QtCore import Signal
 
-from PySide2.QtWidgets import (QVBoxLayout,
+from PySide2.QtWidgets import (QDialog,
                               QInputDialog,
                               QLabel,
                               QLineEdit,
                               QTreeWidget,
                               QTreeWidgetItem,
-                              QWidget)
+                              QVBoxLayout)
 
-class SelectTiVoWidget(QWidget):
+class SelectTiVoWidget(QDialog):
     """Displays the list of TiVos that were discovered on the network."""
 
     # Signals
@@ -53,6 +53,8 @@ class SelectTiVoWidget(QWidget):
 
         self.setWindowTitle("Select TiVo")
         self.resize(512, 384)
+
+        self.setModal(True)
 
     def add_tivo(self, name, ip_address):
         item = QTreeWidgetItem()

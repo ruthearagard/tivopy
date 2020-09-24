@@ -45,4 +45,5 @@ class TiVoDiscovery:
             result = (name.strip('._tivo-mindrpc._tcp.local.'),
                       inet_ntoa(address))
 
-            self.addresses.append(result)
+            if result not in self.addresses:
+                self.addresses.append(result)
