@@ -19,18 +19,36 @@ class TiVoClient(QObject):
     """Implements the TiVo version 1.1 TCP Remote Protocol."""
     channel_changed = Signal(tuple)
     error_message = Signal(str)
+    connection_error = Signal(str)
 
     def __init__(self, ip):
         super(TiVoClient, self).__init__()
 
         self.socket = QTcpSocket(self)
+
+        # TiVos *always* listen in on port 31339. 
         self.socket.connectToHost(ip, 31339)
 
         self.socket.readyRead.connect(self.handle_read)
 
     def send_command(self, command):
         print(f'Sending {command}...')
-        self.socket.write(QByteArray(bytes(command + "\r", encoding='ascii')))
+
+        # All commands are terminated with a carriage return. The end user
+        # shouldn't have to care about this detail.
+        command += "\r"
+
+        data = QByteArray(bytes(command, encoding='ascii'))
+
+        sent_bytes = self.socket.write(data)
+        data_len = len(data)
+
+        if sent_bytes != data_len:
+            error_string = "Network error: Not all of the data was sent.\n\n" \
+                           f"Command: {command}\n" \
+                           f"Number of bytes sent: {sent_bytes}\n" \
+                           f"Expected: {data_len}"
+            self.connection_error.emit(error_string)
 
     def handle_read(self):
         """Handles data received by the socket."""
@@ -56,7 +74,5 @@ class TiVoClient(QObject):
                 self.channel_changed.emit((data[1], data[2]))
         elif data[0] == "CH_FAILED":
             self.error_message.emit(data[1])
-        elif data[0] == "LIVETV_READY":
-            pass
-        elif data[0] == "MISSING_TELEPORT_NAME":
-            pass
+        else:
+            self.error_message.emit(data[0])

@@ -13,7 +13,9 @@
 # PERFORMANCE OF THIS SOFTWARE.
 
 from PySide2.QtCore import QObject, QTimer, Slot
+from PySide2.QtWidgets import QMessageBox
 
+from .change_channel import ChangeChannel
 from .main_window import MainWindow
 from .select_tivo import SelectTiVoWidget
 from .tivo_discovery import TiVoDiscovery
@@ -63,13 +65,17 @@ class TiVoPy(QObject):
         self.discovery_timer.stop()
 
         self.client = TiVoClient(ip_address)
+        self.client.error_message.connect(self.error_message)
         self.client.channel_changed.connect(self.channel_changed)
+        self.client.connection_error.connect(self.connection_error)
 
         # It's possible that this function was called during program startup,
         # so the main window may not be present yet.
         if not self.main_window:
             self.main_window = MainWindow()
+
             self.main_window.select_tivo.triggered.connect(self.select_tivo)
+            self.main_window.change_channel.triggered.connect(self.change_channel)
 
         self.main_window.setWindowTitle(f"TiVoPy - {name} ({ip_address})")
 
@@ -79,10 +85,47 @@ class TiVoPy(QObject):
         self.select_tivo_widget.close()
         self.main_window.show()
 
+    @Slot(str)
+    def error_message(self, error):
+        text = ""
+
+        if error == "COMMAND_TIMEOUT":
+            text = "Critical error reached!"
+        elif error == "NO_LIVE":
+            text = "The DVR is not in live TV mode."
+        elif error == "MISSING_CHANNEL":
+            text = "Critical error reached!"
+        elif error == "MALFORMED_CHANNEL":
+            text = "Critical error reached!"
+        elif error == "INVALID_CHANNEL":
+            text = "Channel not found in TCD lineup"
+
+        QMessageBox.critical(self.main_window, "Error", text)
+
+    @Slot()
+    def change_channel(self):
+        self.change_channel = ChangeChannel()
+        self.change_channel.change_channel.connect(self.on_change_channel)
+        self.change_channel.show()
+
+    @Slot()
+    def on_change_channel(self, channel, subchannel, stop_recording):
+        # The TiVo must be in live TV mode for the command to succeed.
+        #self.client.send_command("IRCODE LIVETV")
+
+        if stop_recording:
+            self.client.send_command(f"FORCECH {channel}")
+        else:
+            self.client.send_command(f"SETCH {channel}")
+
     @Slot(tuple)
     def channel_changed(self, channel):
         """Called when the channel has been changed by any action."""
         self.main_window.update_channel(channel[0], channel[1])
+
+    @Slot(str)
+    def connection_error(self, error_string):
+        QMessageBox.critical(self.main_window, "Network error", error_string)
 
     def discover_tivos(self):
         """

@@ -62,6 +62,7 @@ class MainWindow(QLabel):
         self.current_channel.setEnabled(False)
 
         self.select_tivo = QAction("Connect to a different TiVo...", self)
+        self.change_channel = QAction("Change channel...", self)
         self.input_text = QAction("Input text...", self)
 
         # We care about ALL movements of the user, regardless of whether or not
@@ -330,6 +331,7 @@ class MainWindow(QLabel):
         menu.addSeparator()
         menu.addAction(self.select_tivo)
         menu.addAction(self.input_text)
+        menu.addAction(self.change_channel)
         menu.exec_(self.mapToGlobal(point))
 
     def update_connected_to(self, name, ip):
