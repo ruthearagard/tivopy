@@ -72,3 +72,6 @@ class SelectTiVoWidget(QDialog):
                                           "Specify TiVO IP address",
                                           "IP address:",
                                           QLineEdit.Normal)
+
+        if ok:
+            self.connect_to_tivo.emit("unknown", text)

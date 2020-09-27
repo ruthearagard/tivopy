@@ -65,6 +65,7 @@ class TiVoPy(QObject):
         self.discovery_timer.stop()
 
         self.client = TiVoClient(ip_address)
+        self.client.socket.errorOccurred.connect(self.socket_error)
         self.client.error_message.connect(self.error_message)
         self.client.channel_changed.connect(self.channel_changed)
         self.client.connection_error.connect(self.connection_error)
@@ -81,7 +82,6 @@ class TiVoPy(QObject):
         self.main_window.setWindowTitle(f"TiVoPy - {name} ({ip_address})")
 
         self.main_window.command_requested.connect(self.send_command)
-        self.main_window.update_connected_to(name, ip_address)
 
         self.select_tivo_widget.close()
         self.main_window.show()
@@ -110,7 +110,7 @@ class TiVoPy(QObject):
         self.change_channel.show()
 
     @Slot()
-    def on_change_channel(self, channel, subchannel, stop_recording):
+    def on_change_channel(self, channel, stop_recording):
         # The TiVo must be in live TV mode for the command to succeed.
         #self.client.send_command("IRCODE LIVETV")
 
@@ -119,21 +119,26 @@ class TiVoPy(QObject):
         else:
             self.client.send_command(f"SETCH {channel}")
 
-    @Slot(tuple)
+    @Slot()
+    def socket_error(self):
+        QMessageBox.critical(self.main_window,
+                             "Network error",
+                             self.client.socket.errorString())
+
+    @Slot(str)
     def channel_changed(self, channel):
         """Called when the channel has been changed by any action."""
-        self.main_window.update_channel(channel[0], channel[1])
+        self.main_window.update_channel(channel)
 
     @Slot()
     def input_text(self):
-        text, ok = QInputDialog().getText(self,
+        text, ok = QInputDialog().getText(self.main_window,
                                           "Specify text",
                                           "Text:",
                                           QLineEdit.Normal)
-
     @Slot(str)
     def connection_error(self, error_string):
-        QMessageBox.critical(self.main_window, "Network error", error_string)
+        QMessageBox.warning(self.main_window, "Network error", error_string)
 
     def discover_tivos(self):
         """

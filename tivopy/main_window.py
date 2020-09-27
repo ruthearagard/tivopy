@@ -53,11 +53,6 @@ class MainWindow(QLabel):
         # Define informational QActions to be displayed to the user on the
         # context menu.
         self.current_channel = QAction(self)
-        self.connected_to = QAction(self)
-
-        # Because they're informational, making them clickable would serve no
-        # purpose.
-        self.connected_to.setEnabled(False)
         self.current_channel.setEnabled(False)
 
         self.select_tivo = QAction("Connect to a different TiVo...", self)
@@ -83,7 +78,7 @@ class MainWindow(QLabel):
         # max_x (int): The maximum X position that the zone is in.
         # min_y (int): The minimum Y position that the zone is in.
         # max_y (int): The maximum Y position that the zone is in.
-        self.clickable_zones = [{ "cmd"    : "IRCODE TIVO",
+        self.clickable_zones = ({ "cmd"    : "IRCODE TIVO",
                                   "min_x"  : 193,
                                   "max_x"  : 234,
                                   "min_y"  : 51,
@@ -277,7 +272,7 @@ class MainWindow(QLabel):
                                   "min_x"  : 257,
                                   "max_x"  : 301,
                                   "min_y"  : 628,
-                                  "max_y"  : 656 }]
+                                  "max_y"  : 656 })
 
         # The current zone that the cursor is hovering over.
         self.current_zone = { }
@@ -325,7 +320,6 @@ class MainWindow(QLabel):
     def on_context_menu(self, point):
         """Called when the mouse is right clicked on the remote control."""
         menu = QMenu(self)
-        menu.addAction(self.connected_to)
         menu.addAction(self.current_channel)
         menu.addSeparator()
         menu.addAction(self.select_tivo)
@@ -333,16 +327,9 @@ class MainWindow(QLabel):
         menu.addAction(self.change_channel)
         menu.exec_(self.mapToGlobal(point))
 
-    def update_connected_to(self, name, ip):
-        """
-        Updates the information specifying to the user what TiVo they're
-        connected to and its IP.
-        """
-        self.connected_to.setText(f"Connected to {name} ({ip})")
-
-    def update_channel(self, name, how):
+    def update_channel(self, channel):
         """
         Updates the information specifying to the user what channel their TiVo
         is currently tuned into.
         """
-        self.current_channel.setText(f"Current channel: {name} ({how})")
+        self.current_channel.setText(f"Current channel: {channel}")

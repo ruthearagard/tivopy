@@ -20,7 +20,7 @@ from PySide2.QtWidgets import (QCheckBox,
                                QSpinBox)
 
 class ChangeChannel(QDialog):
-    change_channel = Signal(int, int, bool)
+    change_channel = Signal(int, bool)
 
     """Allows the user to change the channel."""
     def __init__(self):
@@ -31,35 +31,25 @@ class ChangeChannel(QDialog):
         self.stop_recording = QCheckBox(self)
         self.channel = QSpinBox(self)
 
-        self.sub_channel = QSpinBox(self)
-        self.sub_channel.setValue(1)
-
         self.channel.setRange(0, 9999)
-        self.sub_channel.setRange(0, 9999)
-
+    
         self.button_boxes = QDialogButtonBox(QDialogButtonBox.Ok |
                                              QDialogButtonBox.Cancel)
 
         self.button_boxes.accepted.connect(self.accepted)
-        self.button_boxes.rejected.connect(self.rejected)
+        self.button_boxes.rejected.connect(lambda: self.close())
 
         self.layout = QFormLayout(self)
         self.layout.addRow("Channel:", self.channel)
-        self.layout.addRow("Subchannel (1 for default):", self.sub_channel)
         self.layout.addRow("Stop recording if in progress:",
                            self.stop_recording)
         self.layout.addRow(self.button_boxes)
 
         self.setWindowTitle("Change TiVo channel")
-        self.resize(320, 400)
+        self.resize(320, 100)
 
     @Slot()
     def accepted(self):
         self.change_channel.emit(self.channel.value(),
-                                 self.sub_channel.value(),
                                  self.stop_recording.isChecked())
-        self.close()
-
-    @Slot()
-    def rejected(self):
         self.close()

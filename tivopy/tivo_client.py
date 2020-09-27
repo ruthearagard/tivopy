@@ -17,7 +17,7 @@ from PySide2.QtNetwork import QTcpSocket
 
 class TiVoClient(QObject):
     """Implements the TiVo version 1.1 TCP Remote Protocol."""
-    channel_changed = Signal(tuple)
+    channel_changed = Signal(str)
     error_message = Signal(str)
     connection_error = Signal(str)
 
@@ -26,7 +26,7 @@ class TiVoClient(QObject):
 
         self.socket = QTcpSocket(self)
 
-        # TiVos *always* listen in on port 31339. 
+        # TiVos *always* serve on port 31339. 
         self.socket.connectToHost(ip, 31339)
 
         self.socket.readyRead.connect(self.handle_read)
@@ -68,10 +68,7 @@ class TiVoClient(QObject):
         data = data.split(' ')
 
         if data[0] == "CH_STATUS":
-            if len(data) == 4:
-                self.channel_changed.emit((data[1], data[3]))
-            else:
-                self.channel_changed.emit((data[1], data[2]))
+            self.channel_changed.emit(data[1])
         elif data[0] == "CH_FAILED":
             self.error_message.emit(data[1])
         else:
