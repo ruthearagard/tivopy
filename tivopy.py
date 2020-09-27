@@ -15,6 +15,7 @@
 
 from sys import argv, exit
 from tivopy.tivopy import TiVoPy
+import tivopy.assets
 from PySide2.QtWidgets import QApplication
 
 if __name__ == '__main__':

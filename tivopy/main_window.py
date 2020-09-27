@@ -12,7 +12,6 @@
 # OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-import assets
 from PySide2.QtCore import Signal, Slot, QPoint, Qt
 from PySide2.QtGui import QMouseEvent, QPixmap
 from PySide2.QtWidgets import (QAction,
@@ -30,7 +29,7 @@ class MainWindow(QLabel):
         super(MainWindow, self).__init__()
 
         # Construct a QPixmap from the TiVo remote control image.
-        self.remote_control_pixmap = QPixmap("tivo_remote.jpg")
+        self.remote_control_pixmap = QPixmap(":/assets/tivo_remote.jpg")
 
         # Scale the window to the width and height of the TiVo remote control
         # image and disable resizing. We disable resizing because:
