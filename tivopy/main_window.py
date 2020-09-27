@@ -370,7 +370,7 @@ class MainWindow(QLabel):
         """Called when the user presses a key on the keyboard."""
 
         for button in self.buttons:
-            if button["key"] is event.key():
+            if button["key"] == event.key():
               self.command_requested.emit(button["cmd"])
               break
 
