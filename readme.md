@@ -16,6 +16,9 @@ WORK if the protocol isn't enabled.
 TiVoPy is capable of autodetecting TiVos on your local network, or allowing you
 to specify the IP address of the TiVo you want to connect to.
 
+I'm [open to feature suggestions](https://github.com/ruthearagard/tivopy/issues/new/choose)
+and pull requests.
+
 Operation
 ---------
 
@@ -37,9 +40,6 @@ other miscellanious actions.
 I tried to make the program as self-explanatory as I possibly could, as such
 there's no set of instructions beyond this readme.
 
-I'm [open to feature suggestions](https://github.com/ruthearagard/tivopy/issues/new/choose) and
-pull requests.
-
 Downloads
 ---------
 
@@ -47,3 +47,6 @@ Credits
 -------
 
 Michael Rodriguez <ruthearagard -at- gmail -dot- com>
+
+"TIVO" is a registered trademark of "TiVo Brands LLC". Neither this project,
+nor its contributors or authors are affiliated with Xperi Holding Corporation.
