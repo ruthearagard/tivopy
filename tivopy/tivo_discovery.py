@@ -28,10 +28,17 @@ class TiVoDiscovery:
     def remove_service(self, zeroconf, type, name):
         """
         Called by zeroconf.ServiceBrowser when a TiVo has been removed from
-        the network. We should probably care about this, but we don't
-        currently.
+        the network.
         """
-        pass
+        info = zeroconf.get_service_info(type, name)
+
+        for address in info.addresses:
+            # The user should not care about the underlying service name.
+            result = (name.strip('._tivo-mindrpc._tcp.local.'),
+                      inet_ntoa(address))
+
+            if result in self.addresses:
+                self.addresses.remove(result)
 
     def add_service(self, zeroconf, type, name):
         """
