@@ -45,7 +45,7 @@ class TiVoPy(QObject):
         self.select_tivo_widget = SelectTiVoWidget()
         self.select_tivo_widget.connect_to_tivo.connect(self.connect_to_tivo)
 
-        # Discover new TiVos every 5 seconds.
+        # Discover TiVos on the local network every 5 seconds.
         self.discovery_timer = QTimer(self)
         self.discovery_timer.timeout.connect(self.discover_tivos)
         self.discovery_timer.start(5000)
@@ -88,23 +88,26 @@ class TiVoPy(QObject):
 
     @Slot(str)
     def error_message(self, error):
+        """Called when the TiVo sends us an error code."""
         text = ""
 
-        if error == "COMMAND_TIMEOUT":
-            text = "Critical error reached!"
-        elif error == "NO_LIVE":
+        if error == "NO_LIVE":
             text = "The DVR is not in live TV mode."
-        elif error == "MISSING_CHANNEL":
-            text = "Critical error reached!"
-        elif error == "MALFORMED_CHANNEL":
-            text = "Critical error reached!"
         elif error == "INVALID_CHANNEL":
-            text = "Channel not found in TCD lineup"
+            text = "Channel not found in TCD lineup."
+        else:
+            text = f'{error} reached.'
 
         QMessageBox.critical(self.main_window, "Error", text)
 
     @Slot()
     def change_channel(self):
+        """
+        Called when the user wishes to change the channel via the 'Change
+        Channel' dialog. The user would have to do this especially if they want
+        to forcibly change the channel, which involves stopping a recording if
+        one is in progress.
+        """
         self.change_channel = ChangeChannel()
         self.change_channel.change_channel.connect(self.on_change_channel)
         self.change_channel.show()
