@@ -13,7 +13,7 @@
 # PERFORMANCE OF THIS SOFTWARE.
 
 from PySide2.QtCore import QObject, QTimer, Slot
-from PySide2.QtWidgets import QMessageBox
+from PySide2.QtWidgets import QInputDialog, QLineEdit, QMessageBox
 
 from .change_channel import ChangeChannel
 from .main_window import MainWindow
@@ -75,6 +75,7 @@ class TiVoPy(QObject):
             self.main_window = MainWindow()
 
             self.main_window.select_tivo.triggered.connect(self.select_tivo)
+            self.main_window.input_text.triggered.connect(self.input_text)
             self.main_window.change_channel.triggered.connect(self.change_channel)
 
         self.main_window.setWindowTitle(f"TiVoPy - {name} ({ip_address})")
@@ -122,6 +123,13 @@ class TiVoPy(QObject):
     def channel_changed(self, channel):
         """Called when the channel has been changed by any action."""
         self.main_window.update_channel(channel[0], channel[1])
+
+    @Slot()
+    def input_text(self):
+        text, ok = QInputDialog().getText(self,
+                                          "Specify text",
+                                          "Text:",
+                                          QLineEdit.Normal)
 
     @Slot(str)
     def connection_error(self, error_string):
